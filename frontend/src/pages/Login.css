@@ -1,0 +1,44 @@
+/* Reuse Register styles completely */
+@import "./Register.css";
+
+/* ===== Login-specific tweaks only ===== */
+
+/* Slightly tighter spacing (login has fewer fields) */
+.auth-form {
+  gap: 1.5rem;
+}
+
+/* Login title tweak (optional, subtle) */
+.auth-card h2 {
+  font-size: 1.9rem;
+}
+
+/* Subtitle spacing */
+.auth-subtitle {
+  margin-bottom: 2rem;
+}
+
+/* Placeholder already styled in Register.css
+   This is just a fallback safety */
+.form-group input::placeholder {
+  color: #94a3b8;
+}
+
+/* Login button spacing */
+.primary-btn.full {
+  margin-top: 0.5rem;
+}
+
+/* Disabled button already handled in Register.css,
+   this just reinforces visual consistency */
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Small screen adjustment */
+@media (max-width: 480px) {
+  .auth-card h2 {
+    font-size: 1.7rem;
+  }
+}

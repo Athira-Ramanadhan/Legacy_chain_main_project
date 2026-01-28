@@ -9,7 +9,7 @@ async function main() {
   const LegacyChain = await hre.ethers.getContractFactory("LegacyChain");
   const legacyChain = await LegacyChain.deploy(authority.address);
 
-  // 🔧 FIX for ethers v6
+ 
   await legacyChain.waitForDeployment();
 
   const contractAddress = await legacyChain.getAddress();

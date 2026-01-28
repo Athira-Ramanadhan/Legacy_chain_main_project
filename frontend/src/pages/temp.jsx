@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Register from "./Register";
-import Login from "./Login";
-import "./Login.css";
 import "./Landing.css";
 
 // ✅ Import images properly (Vite-safe)
@@ -11,24 +9,11 @@ import aboutImg from "../assets/about.jpg";
 
 const Landing = () => {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleLoginClick = () => {
-    openLogin();
+    navigate("/login");
   };
-
-  const openLogin = () => {
-    setIsRegisterOpen(false);
-    setIsLoginOpen(true);
-  };
-
-  const openRegister = () => {
-    setIsLoginOpen(false);
-    setIsRegisterOpen(true);
-  };
-
-   
-
 
   return (
     <>
@@ -303,17 +288,10 @@ const Landing = () => {
 
       </div>
 
-      {/* ================= MODALS ================= */}
-      <Login
-        isOpen={isLoginOpen}
-        onClose={() => setIsLoginOpen(false)}
-        onSwitchToRegister={openRegister}
-      />
-
+      {/* Register Modal */}
       <Register
         isOpen={isRegisterOpen}
         onClose={() => setIsRegisterOpen(false)}
-        onSwitchToLogin={openLogin}
       />
     </>
   );

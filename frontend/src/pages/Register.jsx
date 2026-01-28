@@ -1,63 +1,61 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./Register.css";
 
-const Register = ({ isOpen, onClose }) => {
+
+  const Register = ({ isOpen, onClose, onSwitchToLogin }) =>  {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     phone: "",
     dob: null,
-    govIdType: "Aadhaar",
     password: "",
     confirmPassword: "",
     agree: false,
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   /* ================= Modal behavior ================= */
   useEffect(() => {
-    if (isOpen) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "auto";
+    if (!isOpen) return;
 
-    const escHandler = (e) => e.key === "Escape" && onClose();
+    document.body.style.overflow = "hidden";
+
+    const escHandler = (e) => {
+      if (e.key === "Escape" && !isSubmitting) onClose();
+    };
+
     window.addEventListener("keydown", escHandler);
 
     return () => {
       document.body.style.overflow = "auto";
       window.removeEventListener("keydown", escHandler);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isSubmitting]);
 
   if (!isOpen) return null;
 
-  /* ================= Helpers ================= */
-  const getPasswordStrength = () => {
+  /* ================= Password strength ================= */
+  const passwordScore = () => {
     let score = 0;
     if (formData.password.length >= 8) score += 25;
     if (/[a-z]/.test(formData.password)) score += 25;
     if (/[A-Z]/.test(formData.password)) score += 25;
-    if (/\d/.test(formData.password)) score += 12.5;
-    if (/[@$!%*?&]/.test(formData.password)) score += 12.5;
-
-    if (score < 25) return "weak";
-    if (score < 50) return "fair";
-    if (score < 75) return "good";
-    return "strong";
+    if (/\d/.test(formData.password)) score += 25;
+    return score;
   };
 
-  const getStrengthWidth = () =>
-    Math.min(
-      (formData.password.match(/[A-Z]/) ? 25 : 0) +
-        (formData.password.match(/[a-z]/) ? 25 : 0) +
-        (formData.password.match(/\d/) ? 25 : 0) +
-        (formData.password.length >= 8 ? 25 : 0),
-      100
-    );
+  const passwordStrength = () => {
+    const score = passwordScore();
+    if (score <= 25) return "weak";
+    if (score <= 50) return "fair";
+    if (score <= 75) return "good";
+    return "strong";
+  };
 
   /* ================= Events ================= */
   const handleChange = (e) => {
@@ -70,39 +68,70 @@ const Register = ({ isOpen, onClose }) => {
   };
 
   const handleDateChange = (date) => {
-    setFormData((prev) => ({
-      ...prev,
-      dob: date,
-    }));
+    setFormData((prev) => ({ ...prev, dob: date }));
     setErrors((prev) => ({ ...prev, dob: "" }));
   };
 
+  /* ================= Validation ================= */
   const validate = () => {
     const err = {};
-    if (!formData.fullName.trim()) err.fullName = "Full name required";
-    if (!/^[6-9]\d{9}$/.test(formData.phone)) err.phone = "Invalid mobile number";
-    if (!formData.email.includes("@")) err.email = "Invalid email";
-    if (!formData.dob) err.dob = "DOB required";
-    if (formData.password.length < 8) err.password = "Weak password";
+
+    if (!formData.fullName.trim()) err.fullName = "Full name is required";
+
+    if (!/^[6-9]\d{9}$/.test(formData.phone))
+      err.phone = "Enter a valid Indian mobile number";
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+      err.email = "Enter a valid email address";
+
+    if (!formData.dob) err.dob = "Date of birth is required";
+
+    if (passwordScore() < 75) err.password = "Password is too weak";
+
     if (formData.password !== formData.confirmPassword)
       err.confirmPassword = "Passwords do not match";
-    if (!formData.agree) err.agree = "Accept terms";
+
+    if (!formData.agree) err.agree = "You must accept the terms";
 
     setErrors(err);
     return Object.keys(err).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  /* ================= Submit ================= */
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    console.log("Registered:", formData);
-    onClose();
+
+    try {
+      setIsSubmitting(true);
+
+      // 🔒 Replace with API call
+      await new Promise((res) => setTimeout(res, 1200));
+
+      onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>×</button>
+    <div
+      className="modal-overlay"
+      onClick={!isSubmitting ? onClose : undefined}
+    >
+      <div
+        className="modal-content"
+        onClick={(e) => e.stopPropagation()}
+        style={{ position: "relative" }}
+      >
+        <button
+          className="modal-close"
+          onClick={onClose}
+          disabled={isSubmitting}
+          aria-label="Close"
+        >
+          ×
+        </button>
 
         <div className="auth-card">
           <h2>Create Account</h2>
@@ -114,9 +143,18 @@ const Register = ({ isOpen, onClose }) => {
               ["email", "Email Address", "email"],
               ["phone", "Mobile Number", "tel"],
             ].map(([name, label, type]) => (
-              <div key={name} className={`form-group ${errors[name] ? "error" : ""}`}>
-                <label>{label} *</label>
-                <input type={type} name={name} value={formData[name]} onChange={handleChange} />
+              <div
+                key={name}
+                className={`form-group ${errors[name] ? "error" : ""}`}
+              >
+                <label htmlFor={name}>{label} *</label>
+                <input
+                  id={name}
+                  type={type}
+                  name={name}
+                  value={formData[name]}
+                  onChange={handleChange}
+                />
                 {errors[name] && <span className="error">{errors[name]}</span>}
               </div>
             ))}
@@ -131,45 +169,75 @@ const Register = ({ isOpen, onClose }) => {
                 showMonthDropdown
                 showYearDropdown
                 dropdownMode="select"
-                yearDropdownItemNumber={50}
-                scrollableYearDropdown
                 maxDate={new Date()}
-                minDate={new Date(1900, 0, 1)}
                 className="date-picker-input"
               />
               {errors.dob && <span className="error">{errors.dob}</span>}
             </div>
 
-            <div className="form-group">
+            <div className={`form-group ${errors.password ? "error" : ""}`}>
               <label>Password *</label>
-              <input type="password" name="password" value={formData.password} onChange={handleChange} />
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+              />
               <div className="password-strength">
                 <div className="strength-meter">
                   <div
-                    className={`strength-bar ${getPasswordStrength()}`}
-                    style={{ width: `${getStrengthWidth()}%` }}
+                    className={`strength-bar ${passwordStrength()}`}
+                    style={{ width: `${passwordScore()}%` }}
                   />
                 </div>
               </div>
+              {errors.password && (
+                <span className="error">{errors.password}</span>
+              )}
             </div>
 
-            <div className="form-group">
+            <div
+              className={`form-group ${errors.confirmPassword ? "error" : ""}`}
+            >
               <label>Confirm Password *</label>
-              <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} />
-              {errors.confirmPassword && <span className="error">{errors.confirmPassword}</span>}
+              <input
+                type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+              />
+              {errors.confirmPassword && (
+                <span className="error">{errors.confirmPassword}</span>
+              )}
             </div>
 
-            <div className="form-group checkbox">
-              <input type="checkbox" name="agree" checked={formData.agree} onChange={handleChange} />
+            <div
+              className={`form-group checkbox ${errors.agree ? "error" : ""}`}
+            >
+              <input
+                type="checkbox"
+                name="agree"
+                checked={formData.agree}
+                onChange={handleChange}
+              />
               <label>I agree to the Terms & Privacy Policy</label>
             </div>
             {errors.agree && <span className="error">{errors.agree}</span>}
 
-            <button className="primary-btn full">Register</button>
+            <button className="primary-btn full" disabled={isSubmitting}>
+              {isSubmitting ? "Creating Account..." : "Register"}
+            </button>
           </form>
 
           <p className="auth-footer">
-            Already have an account? <Link to="/login">Login</Link>
+            Already have an account?{" "}
+            <button
+              type="button"
+              className="link-btn"
+              onClick={onSwitchToLogin}
+            >
+              Login
+            </button>
           </p>
         </div>
       </div>
@@ -180,6 +248,8 @@ const Register = ({ isOpen, onClose }) => {
 Register.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+  onSwitchToLogin: PropTypes.func.isRequired,
 };
+
 
 export default Register;
