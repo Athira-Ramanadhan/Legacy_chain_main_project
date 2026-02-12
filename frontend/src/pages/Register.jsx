@@ -99,20 +99,61 @@ import "./Register.css";
 
   /* ================= Submit ================= */
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
+  e.preventDefault();
 
-    try {
-      setIsSubmitting(true);
+  if (!validate()) return;
 
-      // 🔒 Replace with API call
-      await new Promise((res) => setTimeout(res, 1200));
+  try {
 
-      onClose();
-    } finally {
-      setIsSubmitting(false);
+    setIsSubmitting(true);
+
+    const response = await fetch("http://localhost:5000/auth/register", {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify({
+        name: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+      }),
+
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+
+      setErrors({
+        email: data.message || "Registration failed",
+      });
+
+      return;
     }
-  };
+
+    alert("Registration successful");
+
+    onClose();
+
+  }
+  catch (error) {
+
+    console.error(error);
+
+    setErrors({
+      email: "Server error",
+    });
+
+  }
+  finally {
+
+    setIsSubmitting(false);
+
+  }
+};
 
   return (
     <div

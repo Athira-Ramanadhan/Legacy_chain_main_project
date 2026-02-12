@@ -50,21 +50,65 @@ const Login = ({ isOpen, onClose, onSwitchToRegister }) => {
     return Object.keys(err).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      setIsSubmitting(true);
+  if (!validate()) return;
 
-      // 🔌 Replace with real API
-      await new Promise((res) => setTimeout(res, 1200));
+  try {
 
-      onClose();
-    } finally {
-      setIsSubmitting(false);
+    setIsSubmitting(true);
+
+    const response = await fetch("http://localhost:5000/auth/login", {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password,
+      }),
+
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+
+      setErrors({
+        email: data.message || "Login failed",
+      });
+
+      return;
     }
-  };
+
+    // ✅ Save JWT token
+    localStorage.setItem("token", data.token);
+
+    alert("Login successful");
+
+    onClose();
+
+  }
+  catch (error) {
+
+    console.error(error);
+
+    setErrors({
+      email: "Server error",
+    });
+
+  }
+  finally {
+
+    setIsSubmitting(false);
+
+  }
+};
+
 
   return (
     <div

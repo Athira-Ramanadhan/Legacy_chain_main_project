@@ -8,6 +8,9 @@ import "./Landing.css";
 // ✅ Import images properly (Vite-safe)
 import heroImg from "../assets/legacy.png";
 import aboutImg from "../assets/about.jpg";
+import user1 from "../assets/user1.jpg";
+import user2 from "../assets/user2.jpg";
+import user3 from "../assets/user3.jpg";
 
 const Landing = () => {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
@@ -27,32 +30,33 @@ const Landing = () => {
     setIsRegisterOpen(true);
   };
 
-   
-
-
   return (
     <>
       <div className="landing">
-
         {/* ================= Header ================= */}
         <header className="header">
           <div className="container">
             <h2 className="logo">LegacyChain</h2>
 
             <nav className="nav">
-              <a href="#features">Features</a>
-              <a href="#how-it-works">How It Works</a>
-              <a href="#about">About</a>
-              <button 
-                className="nav-login-btn" 
-                onClick={handleLoginClick}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "#011F4B", fontSize: "0.95rem", fontWeight: "500" }}
-              >
-                Login
-              </button>
-              <button className="primary-btn" onClick={() => setIsRegisterOpen(true)}>
-                Register
-              </button>
+              <div className="nav-left">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#about">About</a>
+              </div>
+
+              <div className="nav-right">
+                <button className="nav-login-btn" onClick={handleLoginClick}>
+                  Login
+                </button>
+
+                <button
+                  className="primary-btn"
+                  onClick={() => setIsRegisterOpen(true)}
+                >
+                  Register
+                </button>
+              </div>
             </nav>
           </div>
         </header>
@@ -63,7 +67,6 @@ const Landing = () => {
 
           <div className="container">
             <div className="hero-content">
-
               <div className="hero-text">
                 <h1>
                   YOUR DIGITAL LIFE <br />
@@ -71,25 +74,63 @@ const Landing = () => {
                 </h1>
 
                 <p>
-                  Your digital assets deserve the same protection as your physical ones.
-                  LegacyChain helps you define, secure, and pass on your digital life
-                  transparently and legally using blockchain technology.
+                  Your digital assets deserve the same protection as your
+                  physical ones. LegacyChain helps you define, secure, and pass
+                  on your digital life transparently and legally using
+                  blockchain technology.
                 </p>
 
                 <div className="hero-actions">
-                  <button className="primary-btn" onClick={() => setIsRegisterOpen(true)}>
+                  <button
+                    className="primary-btn"
+                    onClick={() => setIsRegisterOpen(true)}
+                  >
                     Register
                   </button>
+
+                  <button
+                    className="secondary-btn"
+                    onClick={async () => {
+                      const token = localStorage.getItem("token");
+
+                      if (!token) {
+                        alert("Login first");
+                        return;
+                      }
+
+                      try {
+                        const response = await fetch(
+                          "http://localhost:5000/assets",
+                          {
+                            method: "GET",
+
+                            headers: {
+                              Authorization: "Bearer " + token,
+                            },
+                          },
+                        );
+
+                        const data = await response.json();
+
+                        console.log("Protected route result:", data);
+
+                        alert("Check console (F12)");
+                      } catch (error) {
+                        console.error(error);
+                      }
+                    }}
+                  >
+                    Test Auth
+                  </button>
+
                   <a href="#features" className="secondary-btn">
                     Learn More
                   </a>
                 </div>
               </div>
-
               <div className="hero-image">
                 <img src={heroImg} alt="Digital Legacy Concept" />
               </div>
-
             </div>
           </div>
         </main>
@@ -100,13 +141,12 @@ const Landing = () => {
             <h2 className="section-title">Why LegacyChain?</h2>
 
             <div className="features-grid">
-
               <div className="feature-card">
                 <div className="feature-icon">📜</div>
                 <h3>Blockchain-Based Digital Will</h3>
                 <p>
-                  Your will is converted into a cryptographic hash and stored on the
-                  blockchain, ensuring immutability and tamper resistance.
+                  Your will is converted into a cryptographic hash and stored on
+                  the blockchain, ensuring immutability and tamper resistance.
                 </p>
               </div>
 
@@ -114,8 +154,8 @@ const Landing = () => {
                 <div className="feature-icon">🏛️</div>
                 <h3>Authority-Based Verification</h3>
                 <p>
-                  Asset release occurs only after verification by a trusted legal
-                  or government authority.
+                  Asset release occurs only after verification by a trusted
+                  legal or government authority.
                 </p>
               </div>
 
@@ -154,7 +194,6 @@ const Landing = () => {
                   Approved, or Released.
                 </p>
               </div>
-
             </div>
           </div>
         </section>
@@ -165,7 +204,6 @@ const Landing = () => {
             <h2 className="section-title">How It Works</h2>
 
             <div className="steps">
-
               <div className="step">
                 <div className="step-number">1</div>
                 <h3>Create an Account</h3>
@@ -181,15 +219,18 @@ const Landing = () => {
               <div className="step">
                 <div className="step-number">3</div>
                 <h3>Secure on Blockchain</h3>
-                <p>Will data is hashed and securely recorded on the blockchain.</p>
+                <p>
+                  Will data is hashed and securely recorded on the blockchain.
+                </p>
               </div>
 
               <div className="step">
                 <div className="step-number">4</div>
                 <h3>Controlled Execution</h3>
-                <p>Assets are released only after verified authority approval.</p>
+                <p>
+                  Assets are released only after verified authority approval.
+                </p>
               </div>
-
             </div>
           </div>
         </section>
@@ -198,24 +239,29 @@ const Landing = () => {
         <section id="about" className="about">
           <div className="container">
             <div className="about-content">
-
               <div className="about-text">
                 <h2>About LegacyChain</h2>
-                <p>
-                  LegacyChain is a secure digital inheritance platform designed to
-                  solve the growing problem of unmanaged digital assets after death.
-                </p>
-                <p>
-                  By combining blockchain immutability with controlled legal
-                  verification, LegacyChain ensures your digital legacy is protected
-                  and honored exactly as intended.
-                </p>
+                <div className="about-text">
+
+                  <p className="about-description">
+                    LegacyChain is a secure platform that helps individuals
+                    protect and transfer their digital assets to trusted
+                    beneficiaries. It ensures your digital legacy is not lost or
+                    misused after your lifetime.
+                    Using blockchain technology, LegacyChain stores asset
+                    records securely and prevents unauthorized changes. This
+                    guarantees transparency, integrity, and long-term security.
+                  
+                    The platform allows users to assign beneficiaries and
+                    ensures assets are released only after proper verification,
+                    providing a safe and reliable inheritance solution.
+                  </p>
+                </div>
               </div>
 
               <div className="about-image">
                 <img src={aboutImg} alt="LegacyChain Overview" />
               </div>
-
             </div>
           </div>
         </section>
@@ -227,37 +273,47 @@ const Landing = () => {
             <div className="testimonials-grid">
               <div className="testimonial-card">
                 <div className="testimonial-content">
-                  <p>"LegacyChain gave me peace of mind knowing my digital assets will be properly distributed. The blockchain security is unmatched."</p>
+                  <p>
+                    "LegacyChain gave me peace of mind knowing my digital assets
+                    will be properly distributed. The blockchain security is
+                    unmatched."
+                  </p>
                 </div>
                 <div className="testimonial-author">
-                  <img src="https://via.placeholder.com/50" alt="User" />
+                  <img src={user1} alt="User" />
                   <div>
-                    <h4>Sarah Johnson</h4>
+                    <h4>Johnson</h4>
                     <span>Tech Entrepreneur</span>
                   </div>
                 </div>
               </div>
               <div className="testimonial-card">
                 <div className="testimonial-content">
-                  <p>"As a lawyer, I appreciate the legal compliance and verification process. It's the future of digital inheritance."</p>
+                  <p>
+                    "As a lawyer, I appreciate the legal compliance and
+                    verification process. It's the future of digital
+                    inheritance."
+                  </p>
                 </div>
                 <div className="testimonial-author">
-                  <img src="https://via.placeholder.com/50" alt="User" />
+                  <img src={user2} alt="User" />
                   <div>
                     <h4>Michael Chen</h4>
                     <span>Attorney at Law</span>
-                    
                   </div>
                 </div>
               </div>
               <div className="testimonial-card">
                 <div className="testimonial-content">
-                  <p>"Simple, secure, and trustworthy. LegacyChain handles what traditional wills can't touch."</p>
+                  <p>
+                    "Simple, secure, and trustworthy. LegacyChain handles what
+                    traditional wills can't touch."
+                  </p>
                 </div>
                 <div className="testimonial-author">
-                  <img src="https://via.placeholder.com/50" alt="User" />
+                  <img src={user3} alt="User" />
                   <div>
-                    <h4>Emily Rodriguez</h4>
+                    <h4>Ayaan Rodriguez</h4>
                     <span>Digital Content Creator</span>
                   </div>
                 </div>
@@ -269,7 +325,6 @@ const Landing = () => {
         {/* ================= Footer ================= */}
         <footer className="footer">
           <div className="footer-content">
-
             <div className="footer-section">
               <h3>LegacyChain</h3>
               <p>Securing your digital legacy.</p>
@@ -278,29 +333,41 @@ const Landing = () => {
             <div className="footer-section">
               <h4>Quick Links</h4>
               <ul>
-                <li><a href="#features">Features</a></li>
-                <li><a href="#how-it-works">How It Works</a></li>
-                <li><a href="#about">About</a></li>
-                <li><Link to="/login">Login</Link></li>
+                <li>
+                  <a href="#features">Features</a>
+                </li>
+                <li>
+                  <a href="#how-it-works">How It Works</a>
+                </li>
+                <li>
+                  <a href="#about">About</a>
+                </li>
+                <li>
+                  <Link to="/login">Login</Link>
+                </li>
               </ul>
             </div>
 
             <div className="footer-section">
               <h4>Legal</h4>
               <ul>
-                <li><a href="#">Privacy Policy</a></li>
-                <li><a href="#">Terms of Service</a></li>
-                <li><a href="#">Contact</a></li>
+                <li>
+                  <a href="#">Privacy Policy</a>
+                </li>
+                <li>
+                  <a href="#">Terms of Service</a>
+                </li>
+                <li>
+                  <a href="#">Contact</a>
+                </li>
               </ul>
             </div>
-
           </div>
 
           <div className="footer-bottom">
-            <p>© 2024 LegacyChain. All rights reserved.</p>
+            <p>© 2026 LegacyChain. All rights reserved.</p>
           </div>
         </footer>
-
       </div>
 
       {/* ================= MODALS ================= */}

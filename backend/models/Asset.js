@@ -9,50 +9,64 @@ const assetSchema = new mongoose.Schema(
     },
 
     // Type of digital asset
-    // NOTE = email, social media, wallet info
-    // DOCUMENT = pdf, files
-    // IMAGE = photos, id proof
-    type: {
-      type: String,
-      enum: ["NOTE", "DOCUMENT", "IMAGE"],
-      required: true,
-    },
+   type: {
+  type: String,
+  enum: [
+    "DOCUMENT",
+    "PASSWORD",
+    "FINANCIAL",
+    "PROPERTY",
+    "MESSAGE"
+  ],
+  required: true
+},
 
-    // Owner (person who created the asset)
+    // Owner
     ownerId: {
       type: String,
       required: true,
     },
 
-    // Nominee (person who will receive the asset)
+    // Nominee
     nomineeId: {
       type: String,
       required: true,
     },
 
-    // Encrypted asset content (text / base64)
+    // Encrypted asset content
     encryptedData: {
       type: String,
       required: true,
     },
 
+    // Blockchain numeric ID (CRITICAL FIX)
+    blockchainId: {
+      type: Number,
+      required: true,
+      unique: true,
+    },
+
     // Asset state
-    // LOCKED  -> nominee cannot access
-    // RELEASED -> nominee can access
     status: {
       type: String,
       enum: ["LOCKED", "RELEASED"],
       default: "LOCKED",
     },
 
-    // When the asset was released
+    // Transaction hash from blockchain
+    txHash: {
+      type: String,
+      default: null,
+    },
+
+    // Release time
     releasedAt: {
       type: Date,
       default: null,
     },
   },
   {
-    timestamps: true, // adds createdAt & updatedAt
+    timestamps: true,
   }
 );
 
