@@ -4,6 +4,8 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import CreateWill from "./pages/CreateWill";
 import Authority from "./pages/Authority";
+import CreateAsset from "./pages/CreateAsset";
+
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/create-will" element={<CreateWill />} />
         <Route path="/authority" element={<Authority />} />
+        <Route path="/create-asset" element={<CreateAsset />} />
+
       </Routes>
     </BrowserRouter>
   );
