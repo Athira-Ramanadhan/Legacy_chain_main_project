@@ -1,0 +1,81 @@
+/* CreateAsset.css */
+
+.create-asset-container {
+  max-width: 650px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.asset-form-card {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.form-title {
+  color: #011f4b;
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+  font-weight: 800;
+}
+
+.form-subtitle {
+  color: #64748b;
+  margin-bottom: 30px;
+  font-size: 0.95rem;
+}
+
+.input-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.vault-input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: #f8fafc;
+  transition: all 0.3s ease;
+}
+
+.vault-input:focus {
+  outline: none;
+  border-color: #011f4b;
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgba(1, 31, 75, 0.05);
+}
+
+.vault-button {
+  width: 100%;
+  background: #011f4b;
+  color: white;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background 0.2s ease;
+}
+
+.vault-button:hover {
+  background: #005b96;
+}

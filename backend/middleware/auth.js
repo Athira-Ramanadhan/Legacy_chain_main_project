@@ -1,21 +1,20 @@
 const jwt = require("jsonwebtoken");
 
-function auth(req, res, next) {
+module.exports = function (req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "No token provided" });
+    return res.status(401).json({ message: "No token provided." });
   }
 
   const token = authHeader.split(" ")[1];
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: decoded.id };
+    // Attach both ID and Email for the Ghost Nominee logic
+    req.user = { id: decoded.id, email: decoded.email };
     next();
   } catch (err) {
     return res.status(401).json({ message: "Invalid token" });
   }
-}
-
-module.exports = auth;
+};

@@ -16,6 +16,7 @@ contract LegacyChain {
     uint256 public assetCount;
 
     modifier onlyOwner() {
+        
         require(msg.sender == owner, "Not owner");
         _;
     }

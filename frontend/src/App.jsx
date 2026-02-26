@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import CreateWill from "./pages/CreateWill";
 import Authority from "./pages/Authority";
 import CreateAsset from "./pages/CreateAsset";
+import HeirManagement from "./pages/HeirManagement";
 
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
         <Route path="/create-will" element={<CreateWill />} />
         <Route path="/authority" element={<Authority />} />
         <Route path="/create-asset" element={<CreateAsset />} />
+        <Route path="/beneficiaries" element={<HeirManagement />} />
 
       </Routes>
     </BrowserRouter>
