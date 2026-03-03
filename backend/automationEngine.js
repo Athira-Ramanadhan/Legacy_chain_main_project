@@ -1,55 +1,47 @@
 const cron = require("node-cron");
+const jwt = require("jsonwebtoken");
 const User = require("./models/User");
 const Asset = require("./models/Asset");
 const releaseAsset = require("./utils/releaseAsset");
+const sendMail = require("./utils/mailer");
+const { getWarningEmailHtml } = require("./utils/emailTemplates");
 
-cron.schedule("* * * * *", async () => {
-  console.log("Automation running...");
+cron.schedule("*/10 * * * * *", async () => {
+  console.log("⏱️ Automation Heartbeat...");
 
-  const users = await User.find();
-  const now = new Date();
+  try {
+    const users = await User.find({ inheritanceStatus: { $ne: "COMPLETED" } });
 
-  for (let user of users) {
-    const inactiveMinutes =
-      (now - user.lastActive) / (1000 * 60);
+    for (let user of users) {
+      const now = new Date();
+      const inactiveMinutes = (now - new Date(user.lastActive)) / (1000 * 60);
 
-    // 🔹 STEP 1 — Send Warning
-    if (
-      inactiveMinutes > user.inactivityThreshold &&
-      user.inheritanceStatus === "ACTIVE"
-    ) {
-      console.log(`Warning triggered for ${user.email}`);
+      if (inactiveMinutes > user.inactivityThreshold && user.inheritanceStatus === "ACTIVE") {
+        console.log(`⚠️ Threshold hit for ${user.email}. Generating security token...`);
 
-      user.inheritanceStatus = "WARNING_SENT";
-      user.warningSentAt = new Date();
+        // 2. GENERATE A TEMPORARY TOKEN (valid for 1 hour)
+        const token = jwt.sign(
+          { id: user._id, email: user.email }, 
+          process.env.JWT_SECRET, 
+          { expiresIn: "1h" }
+        );
 
-      await user.save();
-    }
-
-    // 🔹 STEP 2 — Auto Transfer After Grace Period
-    if (user.inheritanceStatus === "WARNING_SENT") {
-      const graceMinutes =
-        (now - user.warningSentAt) / (1000 * 60);
-
-      if (graceMinutes > user.gracePeriod) {
-        console.log(`Auto transfer triggered for ${user.email}`);
-
-        // 🔥 Prevent repeated execution
-        user.inheritanceStatus = "AUTO_TRIGGERED";
+        user.inheritanceStatus = "WARNING_SENT";
+        user.warningSentAt = new Date();
         await user.save();
 
-        const assets = await Asset.find({
-          ownerId: user._id,
-          status: "LOCKED"
-        });
-
-        for (let asset of assets) {
-          await releaseAsset(asset);
+        try {
+          // 3. PASS THE TOKEN TO THE TEMPLATE
+          const emailHtml = getWarningEmailHtml(user, token); 
+          await sendMail(user.email, "ACTION REQUIRED: LegacyChain Security Alert", emailHtml);
+          console.log(`✅ Warning email delivered with secure token to ${user.email}`);
+        } catch (mailErr) {
+          console.error(`❌ Failed to send email to ${user.email}:`, mailErr.message);
         }
-
-        user.inheritanceStatus = "COMPLETED";
-        await user.save();
       }
+      // ... rest of your logic ...
     }
+  } catch (err) {
+    console.error("Cron Job Global Error:", err);
   }
 });

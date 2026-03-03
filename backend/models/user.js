@@ -3,13 +3,18 @@ const mongoose = require("mongoose");
 /**
  * HEIR SUB-SCHEMA
  * Purpose: Defines the technical structure for a digital asset recipient.
- * Order: Must be defined BEFORE userSchema.
  */
 const heirSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: false, // Allows Ghost/Silent Nominees who haven't signed up yet
+  },
+  // --- ADDED THIS FOR THE SIMPLE WILL ---
+  fullName: {
+    type: String,
+    required: true,
+    trim: true,
   },
   email: {
     type: String,
@@ -24,7 +29,7 @@ const heirSchema = new mongoose.Schema({
   },
   secretQuestion: {
     type: String,
-    required: true, 
+    required: true,
   },
   hint: {
     type: String,
@@ -32,7 +37,7 @@ const heirSchema = new mongoose.Schema({
   },
   secretAnswer: {
     type: String,
-    required: true, 
+    required: true,
   },
   status: {
     type: String,
@@ -66,11 +71,17 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    // Inside your userSchema in User.js
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
     walletAddress: {
       type: String,
       required: true,
     },
-    
+
     // --- DEADMAN SWITCH PROTOCOL ---
     lastActive: {
       type: Date,
@@ -96,7 +107,7 @@ const userSchema = new mongoose.Schema(
     // --- RECIPIENT REGISTRY ---
     heirs: [heirSchema], // References the sub-schema above
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Virtuals for JSON responses
@@ -104,5 +115,4 @@ userSchema.set("toObject", { virtuals: true });
 userSchema.set("toJSON", { virtuals: true });
 
 // Prevent Model Overwrite Errors
-// models/User.js
 module.exports = mongoose.models.User || mongoose.model("User", userSchema);

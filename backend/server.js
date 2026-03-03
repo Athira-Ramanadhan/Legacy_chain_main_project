@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path"); // Add this at the top with your other requires
 require("dotenv").config();
 require("./automationEngine");
 
@@ -38,3 +39,5 @@ mongoose
     });
   })
   .catch((err) => console.error("DB connection failed:", err));
+// In server.js
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));

@@ -1,4 +1,4 @@
-const Asset = require("../models/asset");
+const Asset = require("../models/Asset");
 const contract = require("../config/blockchain");
 
 const releaseAsset = async (asset) => {

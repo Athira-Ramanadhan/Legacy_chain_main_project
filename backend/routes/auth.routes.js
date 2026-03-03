@@ -34,12 +34,18 @@ router.post("/register", async (req, res) => {
 
     // FIX: Include email in token immediately upon registration
     const token = jwt.sign(
-      { id: user._id, email: user.email }, 
+      { id: user._id, email: user.email,role:user.role }, 
       process.env.JWT_SECRET, 
       { expiresIn: "1d" }
     );
 
-    res.status(201).json({ message: "User registered", token });
+    res.status(201).json({ message: "User registered", token,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role
+      }
+     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -63,75 +69,98 @@ router.post("/login", async (req, res) => {
 
     // FIX: You MUST include the email in the JWT payload for the Ghost system
     const token = jwt.sign(
-      { id: user._id, email: user.email }, 
+      { id: user._id, email: user.email ,role:user.role}, 
       process.env.JWT_SECRET, 
-      { expiresIn: "1d" }
+      { expiresIn: "1h" }
     );
 
-    res.json({ message: "Login successful", token });
+    res.json({
+      user:{
+        id: user._id,
+        email: user.email,
+        role: user.role,
+      }
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 // HEARTBEAT ROUTE: Resets the Deadman Switch timer
+
 router.get("/heartbeat", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
+    
+    // Reset everything to safety
     user.lastActive = new Date();
+    user.inheritanceStatus = "ACTIVE"; // Clear the "WARNING_SENT" state
+    user.warningSentAt = null;         // Stop the grace period countdown
+    
     await user.save();
-    res.json({ status: "ALIVE", lastActive: user.lastActive });
+    
+    res.json({ 
+      status: "ALIVE", 
+      inheritanceStatus: user.inheritanceStatus,
+      lastActive: user.lastActive 
+    });
   } catch (err) {
-    res.status(500).json({ error: "Heartbeat failed" });
+    res.status(500).json({ error: "Heartbeat failed to reset the switch." });
   }
 });
 
 // ==========================
 // ADD HEIR (FULL SECURITY MODE)
 // ==========================
+
 router.post("/add-heir", auth, async (req, res) => {
   try {
-    const { email, nickname, secretQuestion, hint, secretAnswer } = req.body;
+    // 1. Capture 'fullName' from the request body
+    const { fullName, email, nickname, secretQuestion, hint, secretAnswer } = req.body;
     
-    // FIX: Mongoose requires these fields now!
-    if (!email || !secretQuestion || !secretAnswer) {
-      return res.status(400).json({ message: "Missing security parameters. Handover protocol rejected." });
+    // 2. Make fullName a requirement for a "Simple Understandable Will"
+    if (!fullName || !email || !secretQuestion || !secretAnswer) {
+      return res.status(400).json({ message: "Missing required identity or security parameters." });
     }
 
     const cleanEmail = email.toLowerCase().trim();
     const registeredHeir = await User.findOne({ email: cleanEmail });
 
-    // Prevent self-nomination
+    // HASH THE ANSWER
+    const salt = await bcrypt.genSalt(10);
+    const hashedAnswer = await bcrypt.hash(secretAnswer.toLowerCase().trim(), salt);
+
     if (registeredHeir && registeredHeir._id.toString() === req.user.id) {
       return res.status(400).json({ message: "You cannot nominate yourself." });
     }
 
     const currentUser = await User.findById(req.user.id);
     
-    // Prevent duplicates
     if (currentUser.heirs.some(h => h.email === cleanEmail)) {
-      return res.status(400).json({ message: "Nominee already exists." });
+      return res.status(400).json({ message: "Nominee already exists in your registry." });
     }
 
-    // Push with full security challenge data
+    // 3. SAVE THE FULL NAME to the database
     currentUser.heirs.push({
       user: registeredHeir ? registeredHeir._id : null, 
+      fullName: fullName.trim(), // <--- NEW FIELD FOR THE WILL
       email: cleanEmail,
       nickname: nickname || "Digital Heir",
       secretQuestion,
       hint,
-      secretAnswer, // Should ideally be hashed, but for dev plain text is okay
+      secretAnswer: hashedAnswer, 
       status: registeredHeir ? "VERIFIED" : "GHOST" 
     });
 
     await currentUser.save();
-
-    res.json({ message: "Security Handover Authorized." });
+    res.json({ 
+      message: "Security Handover Authorized.",
+      heirName: fullName.trim() 
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Registry Error: " + err.message });
   }
 });
-
 // ==========================
 // GET HEIRS
 // ==========================
@@ -140,7 +169,7 @@ router.post("/add-heir", auth, async (req, res) => {
 // backend/routes/auth.js
 router.get("/heirs", auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).populate("heirs.user", "name email");
     let changed = false;
 
     for (let heir of user.heirs) {
@@ -187,6 +216,33 @@ router.delete("/heirs/:email", auth, async (req, res) => {
     res.json({ message: "Access keys purged. Nominee removed.", heirs: user.heirs });
   } catch (err) {
     res.status(500).json({ error: "Failed to purge nominee: " + err.message });
+  }
+});
+
+// This is the specific route for your "Confirm Identity" page
+// backend/routes/auth.js
+router.post("/verify-and-heartbeat", auth, async (req, res) => {
+  try {
+    const { password } = req.body;
+    const user = await User.findById(req.user.id); // req.user.id comes from auth middleware
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Verify password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    // Reset status to ACTIVE
+    user.lastActive = new Date();
+    user.inheritanceStatus = "ACTIVE";
+    user.warningSentAt = null;
+    
+    await user.save();
+    res.json({ message: "Success" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 module.exports = router;
