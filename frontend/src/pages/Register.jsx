@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Added for redirection
 import PropTypes from "prop-types";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./Register.css";
 
-
-  const Register = ({ isOpen, onClose, onSwitchToLogin }) =>  {
+const Register = ({ isOpen, onClose, onSwitchToLogin }) =>  {
+  const navigate = useNavigate(); // Initialize navigate
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -22,15 +23,11 @@ import "./Register.css";
   /* ================= Modal behavior ================= */
   useEffect(() => {
     if (!isOpen) return;
-
     document.body.style.overflow = "hidden";
-
     const escHandler = (e) => {
       if (e.key === "Escape" && !isSubmitting) onClose();
     };
-
     window.addEventListener("keydown", escHandler);
-
     return () => {
       document.body.style.overflow = "auto";
       window.removeEventListener("keydown", escHandler);
@@ -75,127 +72,74 @@ import "./Register.css";
   /* ================= Validation ================= */
   const validate = () => {
     const err = {};
-
     if (!formData.fullName.trim()) err.fullName = "Full name is required";
-
-    if (!/^[6-9]\d{9}$/.test(formData.phone))
-      err.phone = "Enter a valid Indian mobile number";
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
-      err.email = "Enter a valid email address";
-
+    if (!/^[6-9]\d{9}$/.test(formData.phone)) err.phone = "Enter a valid Indian mobile number";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) err.email = "Enter a valid email address";
     if (!formData.dob) err.dob = "Date of birth is required";
-
     if (passwordScore() < 75) err.password = "Password is too weak";
-
-    if (formData.password !== formData.confirmPassword)
-      err.confirmPassword = "Passwords do not match";
-
+    if (formData.password !== formData.confirmPassword) err.confirmPassword = "Passwords do not match";
     if (!formData.agree) err.agree = "You must accept the terms";
-
     setErrors(err);
     return Object.keys(err).length === 0;
   };
 
   /* ================= Submit ================= */
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    if (!validate()) return;
 
-  if (!validate()) return;
-
-  try {
-
-    setIsSubmitting(true);
-
-    const response = await fetch("http://localhost:5000/auth/register", {
-
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify({
-        name: formData.fullName,
-        email: formData.email,
-        password: formData.password,
-      }),
-
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-
-      setErrors({
-        email: data.message || "Registration failed",
+    try {
+      setIsSubmitting(true);
+      const response = await fetch("http://localhost:5000/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+        }),
       });
 
-      return;
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrors({ email: data.message || "Registration failed" });
+        return;
+      }
+
+      // ✅ SUCCESS: Save Identity and Token
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.user.role);
+
+      onClose();
+      
+      // ✅ REDIRECT: Since it's a new registration, they always go to standard dashboard
+      navigate("/dashboard");
+
+    } catch (error) {
+      console.error(error);
+      setErrors({ email: "Server error. Is the backend running?" });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    alert("Registration successful");
-
-    onClose();
-
-  }
-  catch (error) {
-
-    console.error(error);
-
-    setErrors({
-      email: "Server error",
-    });
-
-  }
-  finally {
-
-    setIsSubmitting(false);
-
-  }
-};
+  };
 
   return (
-    <div
-      className="modal-overlay"
-      onClick={!isSubmitting ? onClose : undefined}
-    >
-      <div
-        className="modal-content"
-        onClick={(e) => e.stopPropagation()}
-        style={{ position: "relative" }}
-      >
-        <button
-          className="modal-close"
-          onClick={onClose}
-          disabled={isSubmitting}
-          aria-label="Close"
-        >
-          ×
-        </button>
-
+    <div className="modal-overlay" onClick={!isSubmitting ? onClose : undefined}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} disabled={isSubmitting}>×</button>
         <div className="auth-card">
           <h2>Create Account</h2>
           <p className="auth-subtitle">Secure your digital legacy</p>
-
           <form className="auth-form" onSubmit={handleSubmit}>
             {[
               ["fullName", "Full Legal Name", "text"],
               ["email", "Email Address", "email"],
               ["phone", "Mobile Number", "tel"],
             ].map(([name, label, type]) => (
-              <div
-                key={name}
-                className={`form-group ${errors[name] ? "error" : ""}`}
-              >
+              <div key={name} className={`form-group ${errors[name] ? "error" : ""}`}>
                 <label htmlFor={name}>{label} *</label>
-                <input
-                  id={name}
-                  type={type}
-                  name={name}
-                  value={formData[name]}
-                  onChange={handleChange}
-                />
+                <input id={name} type={type} name={name} value={formData[name]} onChange={handleChange} />
                 {errors[name] && <span className="error">{errors[name]}</span>}
               </div>
             ))}
@@ -218,49 +162,23 @@ import "./Register.css";
 
             <div className={`form-group ${errors.password ? "error" : ""}`}>
               <label>Password *</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-              />
+              <input type="password" name="password" value={formData.password} onChange={handleChange} />
               <div className="password-strength">
                 <div className="strength-meter">
-                  <div
-                    className={`strength-bar ${passwordStrength()}`}
-                    style={{ width: `${passwordScore()}%` }}
-                  />
+                  <div className={`strength-bar ${passwordStrength()}`} style={{ width: `${passwordScore()}%` }} />
                 </div>
               </div>
-              {errors.password && (
-                <span className="error">{errors.password}</span>
-              )}
+              {errors.password && <span className="error">{errors.password}</span>}
             </div>
 
-            <div
-              className={`form-group ${errors.confirmPassword ? "error" : ""}`}
-            >
+            <div className={`form-group ${errors.confirmPassword ? "error" : ""}`}>
               <label>Confirm Password *</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-              />
-              {errors.confirmPassword && (
-                <span className="error">{errors.confirmPassword}</span>
-              )}
+              <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} />
+              {errors.confirmPassword && <span className="error">{errors.confirmPassword}</span>}
             </div>
 
-            <div
-              className={`form-group checkbox ${errors.agree ? "error" : ""}`}
-            >
-              <input
-                type="checkbox"
-                name="agree"
-                checked={formData.agree}
-                onChange={handleChange}
-              />
+            <div className={`form-group checkbox ${errors.agree ? "error" : ""}`}>
+              <input type="checkbox" name="agree" checked={formData.agree} onChange={handleChange} />
               <label>I agree to the Terms & Privacy Policy</label>
             </div>
             {errors.agree && <span className="error">{errors.agree}</span>}
@@ -269,16 +187,9 @@ import "./Register.css";
               {isSubmitting ? "Creating Account..." : "Register"}
             </button>
           </form>
-
           <p className="auth-footer">
             Already have an account?{" "}
-            <button
-              type="button"
-              className="link-btn"
-              onClick={onSwitchToLogin}
-            >
-              Login
-            </button>
+            <button type="button" className="link-btn" onClick={onSwitchToLogin}>Login</button>
           </p>
         </div>
       </div>
@@ -291,6 +202,5 @@ Register.propTypes = {
   onClose: PropTypes.func.isRequired,
   onSwitchToLogin: PropTypes.func.isRequired,
 };
-
 
 export default Register;

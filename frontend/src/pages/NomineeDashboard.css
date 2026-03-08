@@ -1,0 +1,275 @@
+/* NomineeDashboard.css - Updated to match Dashboard light theme */
+:root {
+  --navy: #011F4B;
+  --white: #ffffff;
+  --bg: #f4f7fa;
+  --border: #e2e8f0;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --green: #16a34a;
+  --red: #ef4444;
+  --accent: #0ea5e9;
+}
+
+.nominee-dashboard {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+}
+
+.nominee-sidebar {
+  width: 280px;
+  background: var(--navy);
+  color: white;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  justify-content: space-between;
+  transition: width 0.3s ease;
+}
+
+.sidebar-brand h2 {
+  color: var(--accent);
+  margin-bottom: 5px;
+  font-weight: 800;
+}
+
+.badge {
+  background: rgba(14, 165, 233, 0.1);
+  color: var(--accent);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nav-link {
+  color: #cbd5e1;
+  text-decoration: none;
+  padding: 12px 15px;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  text-align: left;
+}
+
+.nav-link:hover {
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+.nav-link.active {
+  background: rgba(255,255,255,0.1);
+  color: white;
+  font-weight: 600;
+}
+
+.logout-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fca5a5;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.nominee-main {
+  margin-left: 280px;
+  flex: 1;
+  padding: 40px 60px;
+  overflow-y: auto;
+}
+
+.nominee-header {
+  margin-bottom: 40px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.inheritance-
+grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 25px;
+  margin-top: 30px;
+}
+
+/* Card Styling */
+.nominee-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 25px;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.nominee-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.nominee-card.claim_ready {
+  border: 1px solid var(--accent);
+  box-shadow: 0 0 15px rgba(14, 165, 233, 0.1);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.asset-type {
+  background: var(--navy);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.status-label.locked {
+  background: var(--text-muted);
+  color: white;
+}
+
+.status-label.claim_ready {
+  background: var(--accent);
+  color: white;
+}
+
+.status-label.pending_admin {
+  background: #f59e0b;
+  color: white;
+}
+
+.status-label.approved {
+  background: var(--green);
+  color: white;
+}
+
+.status-label.released {
+  background: var(--green);
+  color: white;
+}
+
+/* Upload Zone */
+.upload-section {
+  margin-top: 20px;
+}
+
+.instruction {
+  font-size: 0.9rem;
+  color: var(--text-main);
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.upload-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--accent);
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.upload-btn:hover {
+  background: #0284c7;
+  transform: translateY(-2px);
+}
+
+.upload-btn:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.claim-btn {
+  width: 100%;
+  background: var(--green);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.claim-btn:hover {
+  background: #15803d;
+  transform: translateY(-2px);
+}
+
+.locked-msg, .pending-msg {
+  background: var(--bg);
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  margin-top: 15px;
+}
+
+.loader {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nominee-sidebar {
+    width: 60px;
+    padding: 20px 10px;
+  }
+  .sidebar-brand, .sidebar-nav, .logout-btn {
+    display: none;
+  }
+  .nominee-main {
+    margin-left: 60px;
+    padding: 20px 30px;
+  }
+}

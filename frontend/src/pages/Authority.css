@@ -1,0 +1,138 @@
+:root {
+  --primary-blue: #2563eb;
+  --bg-gray: #f8fafc;
+  --border-color: #e2e8f0;
+  --text-main: #1e293b;
+  --success-green: #16a34a;
+  --danger-red: #dc2626;
+}
+
+.authority-portal {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-gray);
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Sidebar Styling */
+.auth-sidebar {
+  width: 260px;
+  background: white;
+  border-right: 1px solid var(--border-color);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.auth-sidebar h2 {
+  color: var(--primary-blue);
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.status-indicator {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.stat-card {
+  background: var(--bg-gray);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-color);
+}
+
+.stat-card h3 { margin: 0; color: var(--primary-blue); }
+.stat-card p { margin: 0; font-size: 0.85rem; color: #64748b; }
+
+/* Main Content Area */
+.auth-content {
+  flex: 1;
+  padding: 3rem;
+}
+
+.auth-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.auth-table th {
+  background: #f1f5f9;
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.auth-table td {
+  padding: 1.2rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.view-link {
+  color: var(--primary-blue);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.view-link:hover { text-decoration: underline; }
+
+/* Buttons */
+.btn-approve, .btn-reject {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  transition: opacity 0.2s;
+}
+
+.btn-approve { background: var(--success-green); color: white; }
+.btn-reject { background: var(--danger-red); color: white; }
+.btn-approve:hover, .btn-reject:hover { opacity: 0.8; }
+
+/* Audit Log Section */
+.blockchain-audit {
+  margin-top: 3rem;
+  background: #1e293b; /* We keep the logs dark for a technical 'terminal' feel */
+  color: #94a3b8;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.audit-logs {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.logout-btn {
+  margin-top: auto; /* Pushes it to the bottom of the sidebar [cite: 2026-03-08] */
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  background: #fee2e2; /* Light red on hover [cite: 2026-03-08] */
+  color: #ef4444;
+  border-color: #fca5a5;
+}
+
+.log-entry { margin-bottom: 0.5rem; }
+.timestamp { color: var(--success-green); margin-right: 10px; }

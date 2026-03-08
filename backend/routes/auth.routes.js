@@ -5,10 +5,8 @@ const User = require("../models/User");
 const auth = require("../middleware/auth");
 
 const router = express.Router();
-
-// ==========================
 // REGISTER
-// ==========================
+
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password, walletAddress } = req.body;
@@ -32,6 +30,17 @@ router.post("/register", async (req, res) => {
       lastActive: new Date(),
     });
 
+    try {
+      const Asset = require("../models/Asset"); // Ensure this is imported
+      await Asset.updateMany(
+        { nomineeEmail: cleanEmail, nomineeId: null },
+        { nomineeId: user._id }
+      );
+    } catch (syncErr) {
+      console.error("Ghost Sync Error:", syncErr);
+    }
+    
+
     // FIX: Include email in token immediately upon registration
     const token = jwt.sign(
       { id: user._id, email: user.email,role:user.role }, 
@@ -51,9 +60,8 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// ==========================
 // LOGIN
-// ==========================
+
 router.post("/login", async (req, res) => {
   try {
     let { email, password } = req.body;
@@ -66,27 +74,27 @@ router.post("/login", async (req, res) => {
 
     user.lastActive = new Date();
     await user.save();
-
-    // FIX: You MUST include the email in the JWT payload for the Ghost system
     const token = jwt.sign(
-      { id: user._id, email: user.email ,role:user.role}, 
+      { id: user._id, email: user.email, role: user.role }, 
       process.env.JWT_SECRET, 
       { expiresIn: "1h" }
     );
 
     res.json({
-      user:{
+      token, // ✅ CRITICAL: Sending the actual token string
+      user: {
         id: user._id,
         email: user.email,
         role: user.role,
       }
     });
+    // Include the email and role in the JWT payload
+   
+    
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
-
-// HEARTBEAT ROUTE: Resets the Deadman Switch timer
+});// HEARTBEAT ROUTE: Resets the Deadman Switch timer
 
 router.get("/heartbeat", auth, async (req, res) => {
   try {
@@ -109,10 +117,7 @@ router.get("/heartbeat", auth, async (req, res) => {
   }
 });
 
-// ==========================
-// ADD HEIR (FULL SECURITY MODE)
-// ==========================
-
+// ADD HEIR 
 router.post("/add-heir", auth, async (req, res) => {
   try {
     // 1. Capture 'fullName' from the request body
@@ -161,11 +166,8 @@ router.post("/add-heir", auth, async (req, res) => {
     res.status(500).json({ error: "Registry Error: " + err.message });
   }
 });
-// ==========================
-// GET HEIRS
-// ==========================
-// backend/routes/auth.js
 
+// GET HEIRS
 // backend/routes/auth.js
 router.get("/heirs", auth, async (req, res) => {
   try {

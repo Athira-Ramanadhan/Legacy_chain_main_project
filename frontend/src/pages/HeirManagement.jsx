@@ -123,7 +123,7 @@ const HeirManagement = () => {
                     <tr key={h._id || h.email}>
                       <td>
                         <div className="user-info">
-                          {/* If Arnav is synced, show his Name. If not, show "Ghost" */}
+                         
                           <span
                             className="user-name"
                             style={{ display: "block", fontWeight: "bold" }}

@@ -1,34 +1,28 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const path = require("path"); // Add this at the top with your other requires
+const path = require("path");
 require("dotenv").config();
 require("./automationEngine");
 
-
-
 const app = express();
 
-// global middleware
+// ✅ GLOBAL MIDDLEWARE (Keep these together)
 app.use(cors());
 app.use(express.json());
+// Move this here so it's ready before any routes are called [cite: 2026-03-07]
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// routes
+// ✅ ROUTES
 app.use("/auth", require("./routes/auth.routes"));
 app.use("/assets", require("./routes/asset.routes"));
 
-// health check
+// Health check
 app.get("/", (req, res) => {
   res.send("LegacyChain backend is running");
 });
 
-// global error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: "Internal server error" });
-});
-
-// connect DB & start server
+// ✅ DATABASE & SERVER START
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
@@ -39,5 +33,3 @@ mongoose
     });
   })
   .catch((err) => console.error("DB connection failed:", err));
-// In server.js
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));

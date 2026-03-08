@@ -32,9 +32,10 @@ const assetSchema = new mongoose.Schema({
     type: String, 
     required: true 
   },
+
   status: { 
     type: String, 
-    enum: ["LOCKED", "RELEASED"], 
+    enum: ["LOCKED", "RELEASED","PENDING_RELEASE","PENDING_ADMIN"], 
     default: "LOCKED" 
   },
   blockchainId: { 
@@ -44,7 +45,20 @@ const assetSchema = new mongoose.Schema({
   },
   txHash: { 
     type: String // Added to store the Blockchain receipt hash
+  },
+  gracePeriod: { 
+    type: Number, 
+    default: 7, // Default to 7 days for the owner to veto
+  },
+  claimStartedAt: { 
+    type: Date, 
+    default: null // Sets the "Start Clock" for the grace period
+  },
+  deathCertificateUrl: {
+    type: String, // Stores the proof uploaded by the nominee
+    default: null
   }
+
 }, { timestamps: true });
 
 // DEFENSIVE EXPORT: Checks if model exists before creating it

@@ -100,90 +100,101 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
-// ==========================================
-// 3. CLAIM ASSET (Secured with Hashed Verification)
-// ==========================================
-// ==========================================
-// 3. CLAIM ASSET (Secured with Hashed Verification & Legal Audit)
-// ==========================================
+// 3. CLAIM ASSET
+
 router.post("/:id/claim", auth, async (req, res) => {
   try {
     const { answer } = req.body;
     const asset = await Asset.findById(req.params.id);
-    
+
     if (!asset) return res.status(404).json({ message: "Asset not found." });
 
-    // 1. Check Legal Status FIRST (The Brutal Fix)
-    // Even if the owner is dead, we need the Admin's "Green Light" on the certificate
-    if (asset.status !== "APPROVED") {
-      return res.status(403).json({ 
-        message: `Access Denied: Current status is ${asset.status}. You must have a verified death certificate approved by an admin to proceed.` 
+    // 🛑 FIX 1: Change "APPROVED" to "PENDING_RELEASE" to match the Admin's work [cite: 2026-03-08]
+    if (asset.status !== "PENDING_RELEASE") {
+      return res.status(403).json({
+        message: `Current Status: ${asset.status}. Legal Authority must verify proof first.`,
       });
     }
 
-    // 2. Check Deadman Switch Status
-    const deadmanStatus = await checkDeadmanSwitch(asset.ownerId);
-    
-    if (deadmanStatus === "ACTIVE") {
-      return res.status(403).json({ message: "Security Protocol: Owner heartbeat is still active." });
+    // 🛑 FIX 2: Check if claimStartedAt exists before doing math [cite: 2026-03-08]
+    if (!asset.claimStartedAt) {
+      return res.status(400).json({ message: "Claim timer hasn't started yet." });
     }
-    
-    if (deadmanStatus === "GRACE_PERIOD") {
-      return res.status(403).json({ 
-        message: "Vault is in a security grace period. The owner has been notified." 
+
+    // 🛡️ THE TIME CHECK (Grace Period) [cite: 2026-03-08]
+    const now = new Date();
+    // Use asset.gracePeriod (in days) converted to milliseconds [cite: 2026-03-08]
+    const gracePeriodInMs = asset.gracePeriod   * 1000; 
+    const releaseTime = new Date(asset.claimStartedAt.getTime() + gracePeriodInMs);
+
+    if (now < releaseTime) {
+      const remainingMs = releaseTime - now;
+      const hoursLeft = Math.ceil(remainingMs / (1000 * 60 * 60));
+      return res.status(403).json({
+        message: `Security Lock: Grace period active. Vault opens in ${hoursLeft} hours.`,
       });
     }
 
-    // 3. Identify the Heir/Nominee settings in the Owner's Profile
+  
+    // 3. Identity Check (Keep your existing logic here...)
     const owner = await User.findById(asset.ownerId);
     const securitySettings = owner.heirs.find(
-      (h) => h.email.toLowerCase() === req.user.email.toLowerCase()
+      (h) => h.email.toLowerCase() === req.user.email.toLowerCase(),
     );
 
     if (!securitySettings) {
-      return res.status(403).json({ message: "Identity Mismatch: You are not the registered nominee for this specific legacy." });
+      return res.status(403).json({ message: "Identity Mismatch." });
     }
 
-    // 4. Verify the Secret Answer (Bcrypt Comparison)
+    // 4. Secret Answer Check
     const isMatch = await bcrypt.compare(
       answer.toLowerCase().trim(),
-      securitySettings.secretAnswer
+
+      securitySettings.secretAnswer,
     );
 
     if (!isMatch) {
-      return res.status(403).json({ message: "Security Challenge Failed: Incorrect Answer." });
+      return res.status(403).json({ message: "Security Challenge Failed." });
     }
 
-    // 5. Release the Asset & Record Transaction
+    // 5. Success: Release
+
     asset.status = "RELEASED";
     asset.releasedAt = new Date();
     await asset.save();
 
-    // 6. Return decrypted data (Ensure this matches your model field name: 'encryptedData' vs 'data')
-    // Since we usually store it as 'encryptedData', we return that for the frontend to decrypt
-    // or we decrypt it here on the backend.
-    res.json({ 
-      message: "Identity Confirmed. Vault Released.", 
-      data: asset.encryptedData || asset.data, 
-      title: asset.title 
-    });
+    // 🔓 THE REAL DECRYPTION
+    const plainTextData = decrypt(asset.encryptedData);
 
+    res.json({
+      message: "Vault Released.",
+      data: plainTextData,
+      title: asset.title,
+    });
   } catch (err) {
-    res.status(500).json({ error: "Critical Vault Error: " + err.message });
-  }
-});
-// ==========================================
+    // <--- ADD THIS
+    res.status(500).json({ error: "Vault Error: " + err.message });
+  } // <--- ADD THIS
+}); // <--- ADD THIS
+
+
+
 // 4. INSPECT ASSET (Detailed Security Audit)
 // ==========================================
 router.get("/:id/inspect", auth, async (req, res) => {
   try {
     const userId = req.user.id;
+    const userEmail = req.user.email.toLowerCase();
 
-    // Find the asset and ensure the logged-in user is the owner
+    // 1. ALLOW BOTH OWNER AND NOMINEE TO FIND THE ASSET
     const asset = await Asset.findOne({
       _id: req.params.id,
-      ownerId: userId,
-    }).populate("nomineeId", "name email");
+      $or: [
+        { ownerId: userId },
+        { nomineeId: userId },
+        { nomineeEmail: userEmail },
+      ],
+    }).populate("ownerId", "name email");
 
     if (!asset) {
       return res
@@ -191,53 +202,76 @@ router.get("/:id/inspect", auth, async (req, res) => {
         .json({ message: "Asset not found or unauthorized access." });
     }
 
-    // We send the asset details + the contract address for the audit view
+    // 2. FETCH THE SECURITY QUESTION FROM THE OWNER'S HEIR REGISTRY
+    const owner = await User.findById(asset.ownerId);
+    const heirSettings = owner.heirs.find(
+      (h) =>
+        h.email.toLowerCase() === userEmail ||
+        h.user?.toString() === userId.toString(),
+    );
+
+    // 3. SEND ONLY NON-SENSITIVE CHALLENGE DATA
     res.json({
-      ...asset._doc,
-      contractAddress: process.env.CONTRACT_ADDRESS, // Proof from your .env file
-      encryptionMethod: "AES-256-CBC", // Highlighting your security standard
+      title: asset.title,
+      status: asset.status,
+      secretQuestion:
+        heirSettings?.secretQuestion || "No security question found.",
+      hint: heirSettings?.hint || "",
+      ownerName: owner.name,
+      contractAddress: process.env.CONTRACT_ADDRESS,
+      encryptionMethod: "AES-256-CBC",
     });
   } catch (err) {
     res.status(500).json({ error: "Audit Error: " + err.message });
   }
 });
 
-// ... existing routes (create, get, claim, inspect)
-
-// ==========================================
 // 5. ASSET HEARTBEAT (The "I Am Alive" Button)
-// ==========================================
-router.post("/:id/heartbeat", auth, async (req, res) => {
-  try {
-    // Find the asset to ensure the user actually owns it
-    const asset = await Asset.findOne({ _id: req.params.id, ownerId: req.user.id });
-    if (!asset) return res.status(404).json({ message: "Asset not found" });
 
-    // Update the owner's global status to stop the Deadman Switch
+router.post("/heartbeat/global", auth, async (req, res) => {
+  try {
+    // 1. Reset the User's global timer
     const user = await User.findById(req.user.id);
     user.lastActive = new Date();
-    user.inheritanceStatus = "ACTIVE"; 
     await user.save();
 
-    res.json({ message: "Timer reset. Your legacy remains sealed." });
+    // 2. 🛡️ THE VETO: Reset ALL assets owned by this user
+    // 
+    await Asset.updateMany(
+      {
+        ownerId: req.user.id,
+        status: { $in: ["PENDING_RELEASE", "PENDING_ADMIN", "APPROVED"] },
+      },
+      {
+        status: "LOCKED",
+        claimStartedAt: null,
+        deathCertificateUrl: null,
+      },
+    );
+    res.json({
+      message: "Global Heartbeat Detected. All pending claims cancelled.",
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ==========================================
 // 6. PURGE ASSET (Permanent Wipe)
-// ==========================================
+
 router.delete("/:id", auth, async (req, res) => {
   try {
-    const asset = await Asset.findOne({ _id: req.params.id, ownerId: req.user.id });
+    const asset = await Asset.findOne({
+      _id: req.params.id,
+      ownerId: req.user.id,
+    });
 
     if (!asset) {
-      return res.status(404).json({ message: "Asset not found or unauthorized." });
+      return res
+        .status(404)
+        .json({ message: "Asset not found or unauthorized." });
     }
 
-    // BRUTAL TRUTH: We delete from DB, but the Blockchain txHash remains 
-    // as an immutable 'tombstone' that the asset once existed.
+    
     await Asset.findByIdAndDelete(req.params.id);
 
     res.json({ message: "Asset successfully purged from the vault." });
@@ -245,44 +279,47 @@ router.delete("/:id", auth, async (req, res) => {
     res.status(500).json({ error: "Purge Error: " + err.message });
   }
 });
-// ==========================================
+
 // 7. UPLOAD DEATH CERTIFICATE (Nominee Action)
-// ==========================================
+router.post(
+  "/:id/upload-cert",
+  auth,
+  upload.single("deathCertificate"), // This name MUST match frontend append
+  async (req, res) => {
+    try {
+      // 🛡️ SAFETY CHECK: If the file didn't arrive, stop here!
+      if (!req.file) {
+        return res.status(400).json({ error: "No file received. Check field name." });
+      }
 
+      const asset = await Asset.findById(req.params.id);
+      if (!asset) return res.status(404).json({ error: "Asset not found" });
 
-router.post("/:id/upload-cert", auth, upload.single("deathCertificate"), async (req, res) => {
-  try {
-    const asset = await Asset.findById(req.params.id);
-    if (!asset) return res.status(404).json({ message: "Asset not found" });
-
-    // Ensure only the assigned nominee can upload
-    if (asset.nomineeEmail.toLowerCase() !== req.user.email.toLowerCase()) {
-      return res.status(403).json({ message: "Unauthorized: You are not the nominee." });
+      asset.deathCertificateUrl = req.file.path;
+      asset.status = "PENDING_ADMIN"; 
+      asset.claimStartedAt = new Date(); 
+      
+      await asset.save();
+      res.json({ message: "Proof submitted. Claim timer initiated." });
+    } catch (err) {
+      console.error("Upload Error:", err); // 🔍 Log the real error in your terminal
+      res.status(500).json({ error: err.message });
     }
+  },
+);
 
-    asset.deathCertificatePath = req.file.path;
-    asset.status = "PENDING_ADMIN"; // Move to Admin Queue
-    await asset.save();
-
-    res.json({ message: "Certificate uploaded. Waiting for Admin Approval." });
-  } catch (err) {
-    res.status(500).json({ error: "Upload Error: " + err.message });
-  }
-});
-
-// ==========================================
 // 8. ADMIN VERIFICATION (Admin Action)
-// ==========================================
-// Assuming you have an isAdmin middleware
-const { isAdmin } = require("../middleware/adminAuth"); 
-
+const { isAdmin } = require("../middleware/adminAuth");
+// 8. ADMIN VERIFICATION (Admin Action) [cite: 2026-03-08]
 router.post("/:id/verify", auth, isAdmin, async (req, res) => {
   try {
-    const { action } = req.body; // 'APPROVE' or 'REJECT'
+    const { action } = req.body; 
     const asset = await Asset.findById(req.params.id);
 
     if (action === "APPROVE") {
-      asset.status = "APPROVED"; // This unlocks the 'Claim' button for Nominee
+      // 🛑 CHANGE THIS: Use PENDING_RELEASE to trigger the timer logic [cite: 2026-03-08]
+      asset.status = "PENDING_RELEASE"; 
+      asset.claimStartedAt = new Date(); // ⏱️ Reset the clock to NOW [cite: 2026-03-08]
     } else {
       asset.status = "REJECTED";
     }
@@ -294,4 +331,78 @@ router.post("/:id/verify", auth, isAdmin, async (req, res) => {
   }
 });
 
+// 9. GET NOMINEE INHERITANCES (Used by NomineeDashboard)
+// ==========================================
+router.get("/my-inheritances", auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userEmail = req.user.email.toLowerCase();
+
+    // 1. Fetch the inheritances as you were doing
+    const inheritances = await Asset.find({
+      $or: [{ nomineeId: userId }, { nomineeEmail: userEmail }],
+    }).populate("ownerId", "name email");
+
+    // 🕒 2. AUTO-RELEASE LOGIC: Process each asset before sending to UI
+    let updated = false;
+    for (let asset of inheritances) {
+      if (asset.status === "APPROVED" && asset.claimStartedAt) {
+        const now = new Date();
+        const graceInMs = asset.gracePeriod *60*1000; // Convert days to ms
+        const releaseTime =
+          new Date(asset.claimStartedAt).getTime() + graceInMs;
+
+        if (now.getTime() >= releaseTime) {
+          asset.status = "RELEASED";
+          await asset.save();
+          updated = true;
+          console.log(
+            `[SYSTEM]: Asset ${asset.title} officially RELEASED [cite: 2026-03-07].`,
+          );
+        }
+      }
+    }
+
+    // 3. If any statuses changed, we might want to re-fetch or just send the updated list
+    res.json(inheritances);
+  } catch (err) {
+    console.error("Backend Inheritance Fetch Error:", err);
+    res.status(500).json({ error: "Vault Retrieval Error: " + err.message });
+  }
+});
+
+// ADMIN DASHBOARD DATA (Queue + Stats)
+
+router.get("/admin/dashboard", auth, async (req, res) => {
+  try {
+    // 1. Fetch the Queue (Assets waiting for Admin to see the certificate)
+    const pending = await Asset.find({ status: "PENDING_ADMIN" })
+      .populate("ownerId", "name email")
+      .sort({ createdAt: -1 });
+
+    // 2. Calculate the Stats for the Sidebar Cards [cite: 2026-03-07]
+    const totalAssets = await Asset.countDocuments();
+    const pendingCount = await Asset.countDocuments({
+      status: "PENDING_ADMIN",
+    });
+    const releasedCount = await Asset.countDocuments({ status: "RELEASED" });
+    const activeGracePeriods = await Asset.countDocuments({
+      status: "PENDING_RELEASE",
+    });
+
+    res.json({
+      pending,
+      stats: {
+        total: totalAssets,
+        pending: pendingCount,
+        released: releasedCount,
+        grace: activeGracePeriods,
+      },
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Authority Retrieval Error: " + err.message });
+  }
+});
 module.exports = router;

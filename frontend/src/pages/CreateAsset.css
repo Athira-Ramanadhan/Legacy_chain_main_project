@@ -50,12 +50,18 @@
   font-size: 1rem;
   background-color: #f8fafc;
   transition: all 0.3s ease;
+  color: #011f4b !important; /* Force Navy text */
+  caret-color: #011f4b;      /* Force the blinking cursor to be Navy */
+  
+  transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .vault-input:focus {
   outline: none;
   border-color: #011f4b;
   background-color: #fff;
+  color: #011f4b !important;
   box-shadow: 0 0 0 4px rgba(1, 31, 75, 0.05);
 }
 
@@ -74,6 +80,10 @@
   justify-content: center;
   gap: 10px;
   transition: background 0.2s ease;
+}
+select.vault-input option {
+  color: #011f4b;
+  background: #ffffff;
 }
 
 .vault-button:hover {
