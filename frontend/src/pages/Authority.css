@@ -85,21 +85,46 @@
 
 .view-link:hover { text-decoration: underline; }
 
-/* Buttons */
-.btn-approve, .btn-reject {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  margin-right: 0.5rem;
-  transition: opacity 0.2s;
+//* Authority.css - Enhanced Security Buttons */
+
+/* The Navy "Send Alert" Button [cite: 2026-03-08] */
+.btn-approve {
+  background-color: #011f4b !important;
+  color: white !important;
+  border: 1px solid #005b96;
+  transition: all 0.3s ease;
 }
 
-.btn-approve { background: var(--success-green); color: white; }
-.btn-reject { background: var(--danger-red); color: white; }
-.btn-approve:hover, .btn-reject:hover { opacity: 0.8; }
+.btn-approve:hover {
+  background-color: #005b96 !important;
+  transform: translateY(-1px);
+}
 
+/* The Gold "Finalize Master Key" Button [cite: 2026-03-08] */
+.btn-verify-gold {
+  background: linear-gradient(135deg, #d4af37 0%, #f9e272 50%, #b8860b 100%) !important;
+  color: #011f4b !important;
+  border: none !important;
+  box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+.btn-verify-gold:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 6px 15px rgba(212, 175, 55, 0.5);
+  transform: scale(1.02);
+}
+
+/* Disabled state for the Grace Period lock [cite: 2026-03-08] */
+.btn-verify-gold:disabled {
+  background: #cbd5e1 !important;
+  color: #64748b !important;
+  cursor: not-allowed;
+  box-shadow: none;
+  filter: grayscale(1);
+}
 /* Audit Log Section */
 .blockchain-audit {
   margin-top: 3rem;
@@ -136,3 +161,40 @@
 
 .log-entry { margin-bottom: 0.5rem; }
 .timestamp { color: var(--success-green); margin-right: 10px; }
+
+/* Add these for a 'Premium' feel [cite: 2026-03-08] */
+
+.auth-table tbody tr:hover {
+  background-color: #f8fafc; /* Subtle highlight on hover */
+}
+
+.btn-approve, .btn-verify-gold, .btn-reject {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-reject {
+  background: #fff1f2;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+}
+
+.btn-reject:hover {
+  background: #ffe4e6;
+  color: #9f1239;
+}
+
+/* Custom Scrollbar for Audit Logs [cite: 2026-03-08] */
+.audit-logs::-webkit-scrollbar {
+  width: 6px;
+}
+.audit-logs::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 10px;
+}

@@ -89,3 +89,29 @@ select.vault-input option {
 .vault-button:hover {
   background: #005b96;
 }
+
+/* Add these to CreateAsset.css */
+
+/* Style the "Choose File" button to match the Vault theme [cite: 2026-03-08] */
+input[type="file"].vault-input::file-selector-button {
+  background: #011f4b;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 15px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+input[type="file"].vault-input::file-selector-button:hover {
+  background: #005b96;
+}
+
+/* Add a subtle pulse for the "Locked" state to show security [cite: 2026-03-08] */
+.vault-button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.7;
+}

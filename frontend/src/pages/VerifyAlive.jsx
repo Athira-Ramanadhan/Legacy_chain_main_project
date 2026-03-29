@@ -12,34 +12,21 @@ const VerifyAlive = () => {
   const localToken = localStorage.getItem("token");
   const activeToken = urlToken || localToken;
 
-  useEffect(() => {
-  // Give the component a millisecond to grab the URL token
-  if (!activeToken && !urlToken) {
+  // --- REPLACE YOUR CURRENT useEffect WITH THIS ---
+useEffect(() => {
+  // 1. Grab token from URL immediately [cite: 2026-03-08]
+  const urlTokenFromQuery = searchParams.get("token");
+
+  if (urlTokenFromQuery) {
+    // 2. Persist it so the "auth" guards don't kick you out [cite: 2026-03-08]
+    localStorage.setItem("token", urlTokenFromQuery);
+    console.log("✅ Token anchored from URL.");
+  } else if (!localStorage.getItem("token")) {
+    // 3. Only redirect if BOTH are missing (URL and LocalStorage) [cite: 2026-03-08]
     console.log("🚫 No token found, redirecting...");
     navigate("/login?message=session_required");
   }
-}, [activeToken, urlToken, navigate]);
-
-  const handleVerify = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      await axios.post(
-        "http://localhost:5000/auth/verify-and-heartbeat",
-        { password },
-        { headers: { Authorization: `Bearer ${activeToken}` } }
-      );
-      // Use a success state instead of a generic alert for better UX
-      navigate("/dashboard?status=verified");
-    } catch (err) {
-      console.error("Verification failed:", err.response?.data);
-      alert(err.response?.data?.message || "Invalid Password. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+}, [searchParams, navigate]);
   return (
     <div style={styles.container}>
       <div style={styles.card}>

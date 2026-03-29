@@ -1,16 +1,19 @@
-/* NomineeDashboard.css - Updated to match Dashboard light theme */
+/* NomineeDashboard.css - TKMCE Unified Theme */
 :root {
   --navy: #011F4B;
   --white: #ffffff;
   --bg: #f4f7fa;
   --border: #e2e8f0;
+  --card-bg: #1e293b; /* 🛡️ Dark Navy for secure cards */
   --text-main: #1e293b;
   --text-muted: #64748b;
+  --gold: #fcd34d;    /* 🏆 Authority Gold for Titles */
   --green: #16a34a;
   --red: #ef4444;
   --accent: #0ea5e9;
 }
 
+/* 🏗️ MAIN LAYOUT */
 .nominee-dashboard {
   display: flex;
   min-height: 100vh;
@@ -19,6 +22,7 @@
   font-family: 'Inter', sans-serif;
 }
 
+/* 📍 SIDEBAR (Fixed) */
 .nominee-sidebar {
   width: 280px;
   background: var(--navy);
@@ -30,6 +34,7 @@
   height: 100vh;
   justify-content: space-between;
   transition: width 0.3s ease;
+  z-index: 100;
 }
 
 .sidebar-brand h2 {
@@ -52,6 +57,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  margin-top: 40px;
 }
 
 .nav-link {
@@ -66,26 +72,22 @@
   text-align: left;
 }
 
-.nav-link:hover {
-  background: rgba(255,255,255,0.2);
+.nav-link:hover, .nav-link.active {
+  background: rgba(255, 255, 255, 0.1);
   color: white;
-}
-
-.nav-link.active {
-  background: rgba(255,255,255,0.1);
-  color: white;
-  font-weight: 600;
 }
 
 .logout-btn {
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fca5a5;
   padding: 12px;
   border-radius: 8px;
   cursor: pointer;
+  margin-top: auto;
 }
 
+/* 💻 MAIN CONTENT AREA */
 .nominee-main {
   margin-left: 280px;
   flex: 1;
@@ -96,180 +98,173 @@
 .nominee-header {
   margin-bottom: 40px;
   background: white;
-  padding: 20px;
+  padding: 25px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-.inheritance-
-grid {
+.nominee-header h1 {
+  font-size: 1.8rem;
+  color: var(--navy);
+  margin-bottom: 5px;
+}
+
+/* 🟢 THE CARD GRID */
+.inheritance-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 25px;
   margin-top: 30px;
 }
 
-/* Card Styling */
+/* 🛡️ SECURE ASSET CARD (The Authority Look) */
 .nominee-card {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 25px;
+  /* 🎨 COLOR CHOICE: Cyber Slate (Change #2c3e50 to any color you like) */
+  background: #2c3e50 !important; 
+  
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 30px;
+  width: 380px;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  color: white !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  overflow: hidden;
 }
 
+/* Hover Effect: Card lifts and glows [cite: 2026-03-10] */
 .nominee-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+  border-color: #fcd34d; /* Glows Gold on hover */
+}
+.nominee-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+}
+.nominee-card h3 {
+  color: #fcd34d !important; /* 🏆 Legacy Gold */
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 5px;
+  letter-spacing: 0.5px;
 }
 
-.nominee-card.claim_ready {
-  border: 1px solid var(--accent);
-  box-shadow: 0 0 15px rgba(14, 165, 233, 0.1);
+/* Owner Name */
+.owner-name {
+  color: #bdc3c7;
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.card-top {
+
+
+/* 🛤️ PROGRESS TRACKER */
+.progress-container {
+  margin: 20px 0;
+}
+
+.progress-bar-bg {
+  background: rgba(255, 255, 255, 0.1);
+  height: 6px;
+  border-radius: 10px;
+}
+
+.progress-bar-fill {
+  background: var(--green);
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.progress-steps {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 15px;
+  font-size: 0.65rem;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-top: 8px;
+  letter-spacing: 0.5px;
 }
 
-.asset-type {
-  background: var(--navy);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.status-label {
-  font-size: 0.7rem;
-  font-weight: 800;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-
-.status-label.locked {
-  background: var(--text-muted);
-  color: white;
-}
-
-.status-label.claim_ready {
-  background: var(--accent);
-  color: white;
-}
-
-.status-label.pending_admin {
-  background: #f59e0b;
-  color: white;
-}
-
-.status-label.approved {
-  background: var(--green);
-  color: white;
-}
-
-.status-label.released {
-  background: var(--green);
-  color: white;
-}
-
-/* Upload Zone */
-.upload-section {
-  margin-top: 20px;
-}
-
-.instruction {
+.legal-note {
+  background: rgba(0, 0, 0, 0.374);
+  padding: 18px;
+  border-radius: 12px;
+  border-left: 4px solid #3498db;
+  font-style: italic;
   font-size: 0.9rem;
-  color: var(--text-main);
-  margin-bottom: 10px;
-  font-weight: 500;
+  line-height: 1.5;
+  color: #ecf0f1;
+  margin: 15px 0;
 }
-
-.upload-btn {
-  display: block;
-  width: 100%;
-  text-align: center;
-  background: var(--accent);
-  color: white;
-  padding: 12px;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  border: none;
-  transition: background 0.2s, transform 0.2s;
-}
-
-.upload-btn:hover {
-  background: #0284c7;
-  transform: translateY(-2px);
-}
-
-.upload-btn:disabled {
-  background: var(--text-muted);
-  cursor: not-allowed;
-  transform: none;
-}
-
+/* 📂 ACTION BUTTONS */
 .claim-btn {
   width: 100%;
-  background: var(--green);
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 8px;
-  font-weight: bold;
+  padding: 14px;
+  border-radius: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
   cursor: pointer;
-  margin-top: 15px;
-  transition: background 0.2s, transform 0.2s;
+  border: none;
+  transition: all 0.2s ease;
+  margin-top: 10px;
 }
 
-.claim-btn:hover {
-  background: #15803d;
-  transform: translateY(-2px);
-}
-
-.locked-msg, .pending-msg {
-  background: var(--bg);
-  padding: 15px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-  margin-top: 15px;
-}
-
-.loader {
-  text-align: center;
-  padding: 40px;
-  color: var(--text-muted);
-  font-size: 1.1rem;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 40px;
-  color: var(--text-muted);
-  font-size: 1.1rem;
-  background: white;
+claim-btn.success {
+  background: #27ae60 !important; /* Emerald Green */
+  color: white !important;
+  width: 100%;
+  padding: 16px;
   border-radius: 12px;
-  border: 1px solid var(--border);
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+  transition: all 0.2s ease;
 }
 
-/* Responsive */
+.claim-btn.success:hover {
+  background: #2ecc71 !important;
+  box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+}
+
+/* 🏛️ CARD FOOTER */
+.card-footer {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: #7f8c8d;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+}
+.section-divider {
+  font-size: 1.2rem;
+  color: var(--navy);
+  margin-top: 40px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--border);
+}
+
+/* 📱 RESPONSIVE */
+@media (max-width: 1024px) {
+  .nominee-main { margin-left: 280px; padding: 20px 30px; }
+}
+
 @media (max-width: 768px) {
-  .nominee-sidebar {
-    width: 60px;
-    padding: 20px 10px;
-  }
-  .sidebar-brand, .sidebar-nav, .logout-btn {
-    display: none;
-  }
-  .nominee-main {
-    margin-left: 60px;
-    padding: 20px 30px;
-  }
+  .nominee-sidebar { width: 80px; padding: 20px 10px; }
+  .sidebar-brand h2, .sidebar-brand .badge, .sidebar-nav span, .logout-btn { display: none; }
+  .nominee-main { margin-left: 80px; }
 }

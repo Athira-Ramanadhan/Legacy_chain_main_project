@@ -1,65 +1,33 @@
 const mongoose = require("mongoose");
 
 const assetSchema = new mongoose.Schema({
-  title: { 
-    type: String, 
-    required: true 
-  },
-  type: { 
-    type: String, 
-    required: true 
-  },
-  ownerId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: "User", 
-    required: true 
-  },
-  // --- ADDED THIS FOR THE SIMPLE WILL ---
-  nomineeName: { 
-    type: String, 
-    required: true // Ensures every asset has a human name attached
-  },
-  nomineeEmail: { 
-    type: String, 
-    required: true 
-  },
-  nomineeId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: "User", 
-    required: false // Stays null for Ghost nominees
-  },
-  encryptedData: { 
-    type: String, 
-    required: true 
-  },
+  title: { type: String, required: true },
+  type: { type: String, required: true },
+  ownerId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  
+  nomineeName: { type: String, required: true },
+  nomineeEmail: { type: String, required: true },
+  nomineeId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: false },
+
+  // 1. UPDATED: Made required false to allow for File-only assets [cite: 2026-03-08]
+  encryptedData: { type: String, required: false },
+
+  // 2. NEW: Storage for PDF/Photo uploads [cite: 2026-03-08]
+  fileUrl: { type: String, default: null }, 
+  isBinary: { type: Boolean, default: false }, // Flag to tell frontend how to render [cite: 2026-03-08]
 
   status: { 
     type: String, 
-    enum: ["LOCKED", "RELEASED","PENDING_RELEASE","PENDING_ADMIN"], 
+    enum: ["LOCKED", "RELEASED", "PENDING_RELEASE", "PENDING_ADMIN"], 
     default: "LOCKED" 
   },
-  blockchainId: { 
-    type: String, 
-    unique: true, 
-    sparse: true 
-  },
-  txHash: { 
-    type: String // Added to store the Blockchain receipt hash
-  },
-  gracePeriod: { 
-    type: Number, 
-    default: 7, // Default to 7 days for the owner to veto
-  },
-  claimStartedAt: { 
-    type: Date, 
-    default: null // Sets the "Start Clock" for the grace period
-  },
-  deathCertificateUrl: {
-    type: String, // Stores the proof uploaded by the nominee
-    default: null
-  }
+  blockchainId: { type: String, unique: true, sparse: true },
+  txHash: { type: String },
+  
+  gracePeriod: { type: Number, default: 7 },
+  claimStartedAt: { type: Date, default: null },
+  deathCertificateUrl: { type: String, default: null }
 
 }, { timestamps: true });
 
-// DEFENSIVE EXPORT: Checks if model exists before creating it
 module.exports = mongoose.models.Asset || mongoose.model("Asset", assetSchema);

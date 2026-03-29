@@ -11,14 +11,14 @@ const CreateAsset = () => {
   const [type, setType] = useState("DOCUMENT");
   const [nomineeId, setNomineeId] = useState("");
   const [data, setData] = useState("");
+  const [file, setFile] = useState(null);
   const [beneficiaries, setBeneficiaries] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const isFileType = type === "DOCUMENT" || type === "SENTIMENTAL";
+
   useEffect(() => {
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+    if (!token) { navigate("/login"); return; }
 
     const fetchHeirs = async () => {
       try {
@@ -26,142 +26,123 @@ const CreateAsset = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         const result = await res.json();
-        
-        if (res.ok) {
-          // result is the heirs array from your User document
-          setBeneficiaries(Array.isArray(result) ? result : []);
-        } else {
-          console.error("Registry Sync Error:", result.message);
-        }
-      } catch (err) {
-        console.error("Failed to connect to Vault Registry:", err);
-      } finally {
-        setLoading(false);
-      }
+        // 🛠️ FIX: Ensure we handle both array and object responses [cite: 2026-03-08]
+        if (res.ok) setBeneficiaries(Array.isArray(result) ? result : result.heirs || []);
+      } catch (err) { 
+        console.error("Registry Sync Error:", err);
+      } finally { setLoading(false); }
     };
     fetchHeirs();
   }, [token, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!nomineeId) {
-      alert("CRITICAL: A designated recipient is required to seal this vault.");
-      return;
-    }
+    if (!nomineeId) { alert("Nominee required!"); return; }
 
     try {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("type", type);
+      formData.append("nomineeId", nomineeId);
+
+      if (isFileType && file) {
+        formData.append("vaultFile", file); 
+      } else {
+        formData.append("data", data);
+      }
+
       const res = await fetch("http://localhost:5000/assets/create", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+        headers: { 
+          Authorization: `Bearer ${token}` 
         },
-        body: JSON.stringify({ title, type, nomineeId, data })
+        body: formData
       });
 
       if (res.ok) {
-        alert("Protocol Complete: Asset encrypted and vaulted.");
+        alert("Protocol Complete: Asset vaulted.");
         navigate("/dashboard");
       } else {
         const errData = await res.json();
-        alert(errData.message || "Vaulting failed. Check console for protocol errors.");
+        alert(errData.message || "Vaulting failed.");
       }
-    } catch (err) {
-      alert("Connection failure to the encryption backend.");
-    }
+    } catch (err) { alert("Connection failure."); }
   };
 
   return (
     <div className="layout">
-      <aside className="sidebar">
-        <div className="sidebar-top">
-          <h2 className="logo">LegacyChain</h2>
-          <nav className="side-nav">
-            <Link to="/dashboard" className="nav-item">Registry Overview</Link>
-            <Link to="/create-asset" className="nav-item active">Register New Asset</Link>
-            <Link to="/beneficiaries" className="nav-item">Manage Heirs</Link>
-          </nav>
-        </div>
-      </aside>
-
+      {/* Sidebar logic assumed to be external or handled by Layout */}
       <main className="main-content">
         <div className="create-asset-container">
-          <header className="form-header">
-            <h1 className="form-title" style={{ color: '#011f4b' }}>Secure New Asset</h1>
-            <p className="form-subtitle">Lock sensitive credentials or documents into the digital vault.</p>
-          </header>
-
           <form onSubmit={handleSubmit} className="asset-form-card">
+            <h2 className="form-title">Secure New Asset</h2>
+            <p className="form-subtitle">Lock sensitive data or documents in the digital vault.</p>
+
+            {/* 🛠️ ADDED: ASSET TITLE FIELD [cite: 2026-03-08] */}
             <div className="input-group">
-              <label>Asset Title</label>
+              <label>Asset Name / Title</label>
               <input 
+                type="text" 
                 className="vault-input" 
-                placeholder="e.g. BTC Seed Phrase or Family Deed"
-                value={title} 
-                onChange={(e) => setTitle(e.target.value)} 
+                placeholder="e.g., Property Deed 2026"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 required 
               />
             </div>
 
+            {/* 🛠️ ADDED: NOMINEE SELECTOR [cite: 2026-03-08] */}
             <div className="input-group">
-              <label>Designated Recipient (Nominee)</label>
+              <label>Designated Nominee</label>
               <select 
                 className="vault-input" 
                 value={nomineeId} 
                 onChange={(e) => setNomineeId(e.target.value)} 
                 required
               >
-                <option value="">
-                  {loading ? "Scanning Registry..." : "Select from Authorized Heirs..."}
-                </option>
-                
-                {beneficiaries?.map((b) => {
-                  // BRUTALLY IMPORTANT: We send b._id (the heir entry) 
-                  // to the backend, NOT the user._id.
-                  const heirEntryId = b._id; 
-                  const isVerified = b.status === "VERIFIED" || b.user;
-                  const displayName = b.user?.name || "Unregistered Account";
-
-                  return (
-                    <option key={heirEntryId} value={heirEntryId}>
-                      {isVerified ? "✅ " : "⏳ "} {b.nickname} ({displayName})
-                    </option>
-                  );
-                })}
+                <option value="">-- Select Beneficiary --</option>
+                {beneficiaries.map(heir => (
+                  <option key={heir._id} value={heir._id}>
+                    {heir.fullName || heir.nickname} ({heir.email})
+                  </option>
+                ))}
               </select>
-              {beneficiaries.length === 0 && !loading && (
-                <p className="input-hint">No nominees found. <Link to="/beneficiaries">Add one first.</Link></p>
-              )}
             </div>
 
             <div className="input-group">
               <label>Asset Classification</label>
-              <select 
-                className="vault-input" 
-                value={type} 
-                onChange={(e) => setType(e.target.value)}
-              >
+              <select className="vault-input" value={type} onChange={(e) => setType(e.target.value)}>
                 <option value="DOCUMENT">Legal / PDF Document</option>
+                <option value="SENTIMENTAL">Photo</option>
                 <option value="CREDENTIAL">Login / Password</option>
-                <option value="CRYPTO">Private Key / Seed Phrase</option>
-                <option value="FINANCIAL">Bank Account Details</option>
+                <option value="CRYPTO">Private Key </option>
               </select>
             </div>
 
             <div className="input-group">
-              <label>Vault Content (Encrypted Data)</label>
-              <textarea 
-                className="vault-input" 
-                style={{ minHeight: '140px', fontFamily: 'monospace' }}
-                placeholder="Paste the sensitive data to be inherited..."
-                value={data} 
-                onChange={(e) => setData(e.target.value)} 
-                required 
-              />
+              <label>{isFileType ? "Upload File (PDF/Image)" : "Vault Content (Encrypted Data)"}</label>
+              {isFileType ? (
+                <input 
+                  type="file" 
+                  className="vault-input" 
+                  accept=".pdf,image/*"
+                  onChange={(e) => setFile(e.target.files[0])} 
+                  required 
+                />
+              ) : (
+                <textarea 
+                  className="vault-input" 
+                  style={{ minHeight: '140px', fontFamily: 'monospace' }}
+                  placeholder="Paste the sensitive data here..."
+                  value={data} 
+                  onChange={(e) => setData(e.target.value)} 
+                  required 
+                />
+              )}
             </div>
 
             <button type="submit" className="vault-button" disabled={loading}>
-              {loading ? "Initializing..." : "🔒 Seal and Lock Asset"}
+              {loading ? "Syncing Registry..." : "🔒 Seal and Lock Asset"}
             </button>
           </form>
         </div>

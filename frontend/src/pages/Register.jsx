@@ -114,7 +114,10 @@ const Register = ({ isOpen, onClose, onSwitchToLogin }) =>  {
       onClose();
       
       // ✅ REDIRECT: Since it's a new registration, they always go to standard dashboard
-      navigate("/dashboard");
+   onSwitchToLogin(); 
+
+// 4. (Optional) Provide feedback so the user knows what happened [cite: 2026-03-08]
+ alert("Vault Created Successfully! Please log in to begin securing assets.");
 
     } catch (error) {
       console.error(error);

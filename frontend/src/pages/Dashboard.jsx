@@ -45,31 +45,31 @@ const Dashboard = () => {
 
   // Logic: Heartbeat (Reset Safety Timer)
   const handleHeartbeat = async () => {
-  // 🛡️ Remove assetId from the parameter, we are doing a GLOBAL reset
-  try {
-    const res = await axios.post(
-      `http://localhost:5000/assets/heartbeat/global`, // ✅ Match the backend route
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+    // 🛡️ Remove assetId from the parameter, we are doing a GLOBAL reset
+    try {
+      const res = await axios.post(
+        `http://localhost:5000/assets/heartbeat/global`, // ✅ Match the backend route
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         },
-      },
-    );
+      );
 
-    if (res.status === 200) {
-      const now = new Date().toLocaleString();
-      setLastVerified(now);
-      toast.success("❤️ Presence Confirmed. ALL pending claims cancelled.");
-      
-      // 🔄 Refresh your asset list to show statuses going from "APPROVED" back to "LOCKED"
-      if (typeof fetchMyAssets === 'function') fetchMyAssets(); 
+      if (res.status === 200) {
+        const now = new Date().toLocaleString();
+        setLastVerified(now);
+        toast.success("❤️ Presence Confirmed. ALL pending claims cancelled.");
+
+        // 🔄 Refresh your asset list to show statuses going from "APPROVED" back to "LOCKED"
+        if (typeof fetchMyAssets === "function") fetchMyAssets();
+      }
+    } catch (err) {
+      console.error("Global Heartbeat failed:", err);
+      toast.error("Failed to update security status.");
     }
-  } catch (err) {
-    console.error("Global Heartbeat failed:", err);
-    toast.error("Failed to update security status.");
-  }
-};
+  };
 
   // Logic: Delete Asset
   const handleDeleteAsset = async (assetId) => {
@@ -186,7 +186,7 @@ const Dashboard = () => {
         <header className="dashboard-header">
           <div className="header-left">
             {/* ✅ DYNAMIC TITLE */}
-            <h1>Estate Dashboard</h1>
+            <h1>  Asset Dashboard</h1>
             <span className="protocol-badge">● Protocol: Armed</span>
           </div>
           <div className="header-right">
@@ -198,9 +198,6 @@ const Dashboard = () => {
                 <span>Vault Status: Protected</span>
               </div>
             </div>
-            <button onClick={handleLogout} className="header-logout">
-              Secure Sign Out
-            </button>
           </div>
         </header>
 
@@ -215,8 +212,9 @@ const Dashboard = () => {
           </div>
           <button
             className="pulse-btn"
+            // To this:
             onClick={() =>
-              toast.info("Inspect an asset to verify your safety.")
+              toast("Inspect an asset to verify your safety.", { icon: "ℹ️" })
             }
           >
             I AM SECURE
@@ -362,7 +360,7 @@ const Dashboard = () => {
                 </p>
               </div>
               <button
-                onClick={() => handleHeartbeat(selectedAsset._id)}
+                onClick={handleHeartbeat}
                 className="pulse-btn"
                 style={{
                   marginTop: "20px",

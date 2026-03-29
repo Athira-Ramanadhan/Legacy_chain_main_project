@@ -88,40 +88,7 @@ const Landing = () => {
                     Register
                   </button>
 
-                  <button
-                    className="secondary-btn"
-                    onClick={async () => {
-                      const token = localStorage.getItem("token");
-
-                      if (!token) {
-                        alert("Login first");
-                        return;
-                      }
-
-                      try {
-                        const response = await fetch(
-                          "http://localhost:5000/assets",
-                          {
-                            method: "GET",
-
-                            headers: {
-                              Authorization: "Bearer " + token,
-                            },
-                          },
-                        );
-
-                        const data = await response.json();
-
-                        console.log("Protected route result:", data);
-
-                        alert("Check console (F12)");
-                      } catch (error) {
-                        console.error(error);
-                      }
-                    }}
-                  >
-                    Test Auth
-                  </button>
+                
 
                   <a href="#features" className="secondary-btn">
                     Learn More

@@ -1,26 +1,26 @@
-/* ClaimAsset.css */
+/* 1. Change the outside background to a neutral deep grey/blue */
 .claim-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at center, #012a5e 0%, #000c1a 100%);
+  background: #0f172a; /* 🌑 This is the "outside" color */
   padding: 20px;
   font-family: 'Inter', sans-serif;
 }
 
+/* 2. Ensure the card has a solid color and a stronger shadow to lift it up */
 .claim-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #1e293b; /* 🛡️ Solid Navy (different from outside) */
+  border: 1px solid #334155;
   border-radius: 24px;
   width: 100%;
   max-width: 500px;
   padding: 40px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  /* Stronger shadow makes the separation look 3D */
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.4); 
   color: white;
 }
-
 .claim-header {
   text-align: center;
   margin-bottom: 30px;
@@ -100,36 +100,56 @@
   animation: unlockPulse 1.5s ease-in-out;
 }
 
-/* 🛠️ MODIFIED FOR VISIBILITY */
 .data-box {
-  width: 100%;
-  background: #ffffff; /* Change from Black to White */
-  padding: 20px;
+  background: #000000; /* ⬛ Pure Black Background for maximum contrast */
+  border: 1px solid #fcd34d; /* Gold Border to match theme */
   border-radius: 12px;
-  border: 3px solid #16a34a; /* Thicker green border */
-  color: #111827; /* Darker, solid text for readability */
-  text-align: left;
-  font-weight: 600; /* Bold the "Secret" text */
+  padding: 25px;
   margin: 20px 0;
+  text-align: center;
+  overflow: hidden; /* Prevents long data from breaking the card */
 }
 
+/* Ensure the text inside is bright white and legible */
 .data-box pre {
+  color: #ffffff; 
   white-space: pre-wrap;
-  word-wrap: break-word;
-  font-size: 1.1rem; /* Slightly larger font */
-}
-@keyframes unlockPulse {
-  0% { box-shadow: 0 0 0px rgba(22, 163, 74, 0); }
-  50% { box-shadow: 0 0 30px rgba(22, 163, 74, 0.4); }
-  100% { box-shadow: 0 0 10px rgba(22, 163, 74, 0.2); }
+  word-break: break-all;
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 
-@keyframes typing {
-  from { width: 0; opacity: 0; }
-  to { width: 100%; opacity: 1; }
+.file-download-zone p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+/* The "Insurance Payout" Download Button [cite: 2026-03-08] */
+.btn-unlock {
+  background: #011f4b;
+  color: white !important;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: transform 0.2s ease;
+}
+
+.btn-unlock:hover {
+  transform: translateY(-2px);
+  background: #005b96;
+}
+
+/* Print Styling for Legal Records [cite: 2026-03-08] */
+@media print {
+  .btn-print, .security-icon, .claim-header p {
+    display: none !important;
+  }
+  .claim-card {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
 }

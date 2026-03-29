@@ -12,6 +12,10 @@ app.use(cors());
 app.use(express.json());
 // Move this here so it's ready before any routes are called [cite: 2026-03-07]
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+const fs = require('fs');
+['uploads/vault', 'uploads/claims'].forEach(dir => {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+});
 
 // ✅ ROUTES
 app.use("/auth", require("./routes/auth.routes"));
